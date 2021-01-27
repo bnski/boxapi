@@ -103,10 +103,10 @@ class BoxAppUser
 			->set('box_sub_type', $type)
 			->setAudience($this->audience_url)
 			->setId(uniqid('ABC'))
-			->setIssuedAt(time())
-			->setExpiration(time() + $this->config['expiration'])
+			->setIssuedAt(new \DateTimeImmutable())
+			->setExpiration((new \DateTimeImmutable())->add(new \DateInterval("PT{$this->config['expiration']}S")))
 		    ->sign($signer,  $privateKeyString)
-		    ->getToken();
+		    ->getToken($signer, $privateKeyString);
 
 		$attributes = "-d 'grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer";
 
@@ -114,7 +114,7 @@ class BoxAppUser
 		$csc = $this->config['au_client_secret'];
 
 		$result = shell_exec("curl $this->token_url $attributes&client_id=$cid&client_secret=$csc&assertion=$assertion' -X POST");
-		
+
 		try
 		{
 	            $this->access_token = json_decode($result, true)["access_token"];
